@@ -30,6 +30,11 @@ async def user_by_id(db: Annotated[Session, Depends(get_db)],
 @user_router.post("/create")
 async def create_user(db: Annotated[Session, Depends(get_db)],
                       user: CreateUser):
+    existing_user = db.execute(select(User).where(User.username == user.username)).scalar_one_or_none()
+    if existing_user:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="Пользоатель с таким именем уже существует")
+        
     db.execute(insert(User).values(username=user.username,
                                    first_name=user.first_name,
                                    last_name=user.last_name,
